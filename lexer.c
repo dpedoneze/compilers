@@ -70,13 +70,47 @@ int isNUMBER(FILE* target)
     }
   }
   
+  ungetc(symbol,target);
+  return 0;
+}
+
   /*
    * IMPLEMENTAR PARTE EXPONENCIAL
    * 
    * [E [('+'|'-')] digit {digit}
   */
+int isSCIENTIFIC(FILE * target)
+{
+  char lexeme[BUFFER_SIZE];
+  int i = 0;
   
-  ungetc(symbol,target);
+  if(toupper(lexeme[i] = getc(target)) == 'E')
+  {
+    i++;
+    if((lexeme[i]=getc(target)) == '+' || lexeme[i] == '-')
+    {
+      i++;
+      
+      if(!isdigit(lexeme[i] = getc(target)))
+      {
+	  ungetc(lexeme[2],target);
+	  ungetc(lexeme[1],target);
+	  ungetc(lexeme[0],target);
+	  return 0;
+      }
+    }
+    
+    if(isdigit(lexeme[i]))
+    {
+      while(isdigit(lexeme[i]=getc(target)));
+      
+      ungetc(lexeme[i],target);
+      return 1;
+    }
+     ungetc(lexeme[1],target);
+  }
+  
+  ungetc(lexeme[0],target);
   return 0;
 }
 
@@ -114,7 +148,13 @@ int gettoken(FILE* target)
   int token;
   if(token = skipspaces(target)) return token;
   if(token = isID(target)) return token;
-  if(token = isDECIMAL(target)) return token;
+  if(token = isNUMBER(target)){
+    if(isSCIENTIFIC(target)) 
+    {
+      return FLTP;
+    }
+    return token;
+  }
   if(token = isTEXT(target)) return token;
   if(token = isCOLONEQ(target)) return token;
   return getc(target);

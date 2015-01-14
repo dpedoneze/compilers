@@ -1,5 +1,7 @@
 /**@<lexer.h>**/
 
+#define BUFFER_SIZE 1024
+
 int isIDENTIFIER(FILE *target);
 int isDECIMAL(FILE *target);
 int gettoken(FILE *target);
