@@ -366,14 +366,14 @@ void fact(void){
   }
 }
  
- /* constant -> num | TEXT | TRUE | FALSE | NIL*/
+ /* constant -> number | TEXT | TRUE | FALSE*/
  void constant(void)
  {
    switch(lookahead)
    {
      case TRUE:
      case FALSE:
-     case NIL:
+     case TEXT:
        match(lookahead);
        break;
      default:

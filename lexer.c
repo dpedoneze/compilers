@@ -32,12 +32,14 @@ int isTEXT(FILE* target)
     int backslash=0;
     while(symbol=getc(target) != '\'' || backslash)
     {
+      if(symbol == EOF) return EOF;
       backslash = (!backslash && symbol == '\\');
     }
+    
+    return TEXT;
   }
   
   ungetc(symbol,target);
-  
   return 0;
 }
 
@@ -86,9 +88,14 @@ int isCOLONEQ(FILE* target)
   {
     if(symbol=getc(target)=='=')
       return COLONEQ;
+    
+    ungetc(symbol,target);
+  }
+  else
+  {
+    ungetc(symbol,target);
   }
   
-  ungetc(symbol,target);
   return 0;
 }
 

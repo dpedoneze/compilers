@@ -28,6 +28,5 @@ enum {
   NOT,
   TRUE,
   FALSE,
-  NIL,
   END
 };
