@@ -6,7 +6,6 @@
 #include <keywords.h>
 
 /* MyPas:: My very simplified Pascal */
-
 /* LL(1)-Grammar:
  * 
  * mypas -> programID declarations blockstmt '.'
@@ -26,7 +25,6 @@
  * parmlist -> formparm { ';' formparm }
  * 
  * formparm -> [ VAR ] ID {',' ID} ':' typespec
- * 
  * 
  * blockstmt -> BEGIN stmtlist END
  * 
@@ -52,20 +50,9 @@
  * 
  * fact -> constant | idstmt | '(' expr ')'
  * 
- * constant -> num | string | TRUE | FALSE | NIL | char
+ * constant -> number | TEXT | TRUE | FALSE | NIL | CHAR
  * 
- * char -> \'[.]\'
- * 
- * num -> decimal | fltpoint
- * 
- * decimal -> '0' | ['1'-'9']{digit}
- * 
- * fltpoint -> decimal E [ ['+'|'-'] ] digit {digit} 
- *           | (decimal [ '.' {dgigit} ] | '.'digit {digit})  [ E [ ['+'|'-'] ] digit {digit} ]
- * 
- * digit -> ['0'-'9']
- * 
- * string -> \' {[^\']} \'
+ * number -> UINT | FLTP
  * 
  * whilestmt -> WHILE expr DO stmt
  * 
@@ -78,8 +65,6 @@
  * variable -> ID { '[' exprlist ']' }
  * 
  * exprlist -> expr { ',' expr }
- * 
- * procedcall -> ID [ '(' exprlist ')' ]
  * 
  */ 
 
@@ -135,7 +120,7 @@ int isbuiltin(void)
 
 void typespec(void)
 {
-typespec_start;
+typespec_start:
   if(isbuiltin()){
   }else{
     match(ARRAY);match('[');
@@ -333,8 +318,16 @@ void isaddop(void)
 }
 
  /* term -> fact { mulop fact }
- * 
- * mulop -> '*' | '/' | DIV | MOD | AND
+ */
+void term(void)
+{
+  fact();
+  while(ismulop){
+    fact();
+  }
+}
+ 
+/* mulop -> '*' | '/' | DIV | MOD | AND
  */ 
 void ismulop(void)
 {
