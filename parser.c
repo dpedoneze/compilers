@@ -1,6 +1,9 @@
 /**@<parser.c>::**/
 
 #include <parser.h>
+#include "../Compiladores/MyPas_integral/keywords.h"
+#include "../../projects/Aula121614-03/parser.h"
+#include <string.h>
 
 /* MyPas:: My very simplified Pascal */
 
@@ -168,26 +171,71 @@ void typespec(void)
  * 
  * fact -> constant | idvalue | '(' expr ')'
  * 
- * constant -> num | string | TRUE | FALSE | NULL | char
- * 
- * char -> \'[.]\'
- * 
- * num -> decimal | fltpoint
- * 
- * decimal -> '0' | ['1'-'9']{digit}
- * 
- * fltpoint -> decimal E [ ['+'|'-'] ] digit {digit} 
- *           | (decimal [ '.' {dgigit} ] | '.'digit {digit})  [ E [ ['+'|'-'] ] digit {digit} ]
- * 
- * digit -> ['0'-'9']
- * 
- * string -> \' {[^\']} \'
- * 
- * whilestmt -> WHILE expr DO stmt
- * 
- * repstmt -> REPEAT stmtlist UNTIL expr
- * 
- * idstmt -> assgmnt | procedcall */
+ /* constant -> num | string | TRUE | FALSE | NIL | char*/
+ void constant(void)
+ {
+   switch(lookahead)
+   {
+     case TRUE:
+       match(TRUE);
+   }
+ }
+ 
+ /* character -> \'[.]\'*/ 
+ void character(void)
+ {
+   match('\'');
+   
+   if(strlen(lookahead)==1) match(lookahead);
+   
+   match('\'');
+ }
+ 
+ /* num -> decimal | fltpoint */
+ void num(void)
+ {
+   
+ }
+ 
+ /* decimal -> '0' | ['1'-'9']{digit}*/ 
+ /*fltpoint -> decimal E [ ['+'|'-'] ] digit {digit} 
+ *           | (decimal [ '.' {dgigit} ] | '.'digit {digit})  [ E [ ['+'|'-'] ] digit {digit} ] */
+ void fltpoint(void)
+ {
+   
+ }
+
+ /*digit -> ['0'-'9']*/ 
+ void digit(void)
+ {
+   if(lookahead>='0' && lookahead<='9')
+     match(lookahead);
+ }
+ 
+ /* string -> \' {[^\']} \' */
+ void string(void)
+ {
+   match('\'');
+   
+   while(lookahead != '\'')
+     match(lookahead);
+   
+   match('\'');
+ }
+ 
+ /* whilestmt -> WHILE expr DO stmt */
+ void whilestmt(void)
+ {
+   match(WHILE); expr(); match(DO); stmt();
+ }
+ 
+ /* repstmt -> REPEAT stmtlist UNTIL expr */
+ void repstmt(void)
+ {
+   match(REPEAT); stmtlist(); match(UNTIL); expr();
+ }
+ 
+ /* idstmt -> assgmnt | procedcall */
 void idstmt(void)
 {
   int isarray = 0;
