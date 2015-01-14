@@ -1,9 +1,9 @@
 /**@<parser.c>::**/
-
+//indent -nuts -ts2 -orig *.[ch]
 #include <parser.h>
-#include "../Compiladores/MyPas_integral/keywords.h"
-#include "../../projects/Aula121614-03/parser.h"
 #include <string.h>
+#include <tokens.h>
+#include <keywords.h>
 
 /* MyPas:: My very simplified Pascal */
 
@@ -52,7 +52,7 @@
  * 
  * fact -> constant | idstmt | '(' expr ')'
  * 
- * constant -> num | string | TRUE | FALSE | NULL | char
+ * constant -> num | string | TRUE | FALSE | NIL | char
  * 
  * char -> \'[.]\'
  * 
@@ -97,9 +97,10 @@ void programID (void)
 {
   if(lookahead==PROGRAM){
     match (PROGRAM); match (ID); match (';');
+  }
 }
 /* declarations -> varspecs sbpspecs */
-void declarations(void)
+void declarations (void)
 {
   varspecs(); sbpspecs();
 }
@@ -115,38 +116,94 @@ void varspecs(void)
   }
 }
 /* typespec -> INTEGER | BOOLEAN | REAL | DOUBLE | CHAR | STRING
- *           | ARRAY '[' decimal { ',' decimal } ']' OF typespec
- */
-void typespec(void)
+ *           | ARRAY '[' decimal { ',' decimal } ']' OF typespec */
+
+int isbuiltin(void)
 {
-  switch(lookahead){
+    switch(lookahead){
     case INTEGER: 
     case BOOLEAN: 
     case REAL: 
     case DOUBLE: 
     case CHAR: 
     case STRING:
-      lookahead = gettoken(target);
-      break;
-    case ARRAY:
-      match(ARRAY);match('[');
-      decimal(); 
-      while(lookahead==',') {
-        match(','); decimal();
-      }
-      match(']');
-      match(OF); 
-      typespec();
+      match(lookahead);
+      return 1;
+    }
+    return 0;
+}
+
+void typespec(void)
+{
+typespec_start;
+  if(isbuiltin()){
+  }else{
+    match(ARRAY);match('[');
+    //decimal(); 
+    match(UINT);
+    while(lookahead==',') {
+      match(','); match(UINT);
+    }
+    match(']');
+    match(OF); 
+    goto typespec_start;
   }
 }
+
+/* formparm -> [ VAR ] ID {',' ID} ':' typespec */
+void formparm(void)
+{
+  if (lookahead == VAR){
+    match(VAR);
+  }
+  match(ID);
+  while(lookahead == ","){
+    match(",");
+    match(ID);
+  }
+  match(":");
+  typespec();
+}
+
+/* parmlist -> formparm { ';' formparm } formparm */
+void parmlist(void)
+{
+  formparm();
+  while(lookahead == ","){
+    match(",");
+    formparm();
+  }
+}
+
 /* sbpspecs -> FUNCTION ID [ '(' parmlist ')' ] : typespec ';' declarations blockstmt ';'
  *           | PROCEDURE ID [ '(' parmlist ')' ] ';' declarations blockstmt ';'
- * 
- * parmlist -> formparm { ';' formparm }
- * 
- * formparm -> [ VAR ] ID {',' ID} ':' typespec
- * 
- * 
+ */
+void sbpspecs(void)
+{
+  int isfunction = (lookahead == FUNCTION); 
+  switch(lookahead){
+    case: FUNCTION:case PROCEDURE:
+      match(lookahead);
+      match(ID);
+      if(lookahead == "("){
+	match("(");
+	parmlist();
+	match(")");
+      }
+      if(isfunction){
+	match(":");
+	if(!isbuiltin()){
+	  match(0);	  
+	}
+      }
+      match(";");
+      declarations();
+      blockstmt();
+      match(";");
+  }
+}
+
+ /* 
  * blockstmt -> BEGIN stmtlist END
  * 
  * stmtlist -> stmt { ';' stmt }
