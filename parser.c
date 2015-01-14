@@ -50,7 +50,7 @@
  * 
  * fact -> constant | idstmt | '(' expr ')'
  * 
- * constant -> number | TEXT | TRUE | FALSE | NIL | CHAR
+ * constant -> number | TEXT | TRUE | FALSE
  * 
  * number -> UINT | FLTP
  * 
