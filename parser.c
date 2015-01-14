@@ -228,56 +228,39 @@ void sbpspecs(void)
  * 
  * fact -> constant | idvalue | '(' expr ')'
  * 
- /* constant -> num | string | TRUE | FALSE | NIL | char*/
+ /* constant -> number | TEXT | TRUE | FALSE | NIL*/
  void constant(void)
  {
    switch(lookahead)
    {
      case TRUE:
-       match(TRUE);
+     case FALSE:
+     case NIL:
+       match(lookahead);
+       break;
+     default:
+       number();
    }
  }
  
- /* character -> \'[.]\'*/ 
- void character(void)
+ /* number -> (UINT|FLTP) */
+ void number(void)
  {
-   match('\'');
-   
-   if(strlen(lookahead)==1) match(lookahead);
-   
-   match('\'');
+   switch(lookahead)
+   {
+     case UINT:
+       match(UINT);
+       break;
+     default:
+       match(FLTP);
+   }
  }
  
- /* num -> decimal | fltpoint */
- void num(void)
- {
-   
- }
- 
- /* decimal -> '0' | ['1'-'9']{digit}*/ 
- /*fltpoint -> decimal E [ ['+'|'-'] ] digit {digit} 
- *           | (decimal [ '.' {dgigit} ] | '.'digit {digit})  [ E [ ['+'|'-'] ] digit {digit} ] */
- void fltpoint(void)
- {
-   
- }
-
  /*digit -> ['0'-'9']*/ 
  void digit(void)
  {
    if(lookahead>='0' && lookahead<='9')
      match(lookahead);
- }
- 
- /* string -> \' {[^\']} \' */
- void string(void)
- {
-   match('\'');
-   
-   while(lookahead != '\'')
-     match(lookahead);
-   
-   match('\'');
  }
  
  /* whilestmt -> WHILE expr DO stmt */

@@ -22,28 +22,71 @@ int isIDENTIFIER(FILE *target)
   return 0;
 }
 
-int isDECIMAL(FILE* target)
+int isTEXT(FILE* target)
+{
+  int symbol = getc(target);
+  
+  if(symbol=='\'')
+  {
+    int backslash=0;
+    while(symbol=getc(target) != '\'' || backslash)
+    {
+      backslash = (!backslash && symbol == '\\');
+    }
+  }
+  
+  ungetc(symbol,target);
+  
+  return 0;
+}
+
+int isNUMBER(FILE* target)
 {
   /* regex: ['1'-'9']['0'-'9']* | '0' */
   int symbol = getc(target);
+  int numtype = UINT;
   if(isdigit(symbol)) {
     if(symbol=='0') {
           if(symbol=='.') {
+	    numtype = FLTP;
             while(isdigit(symbol=getc(target)));
             ungetc(symbol,target);
           }
-          return CTE;
+          return numtype;
     }
     while(isdigit(symbol=getc(target)));
     if(symbol=='.')
+      numtype = FLTP;
       while(isdigit(symbol=getc(target)));
     ungetc(symbol,target);
-    return CTE;
+    return numtype;
   } else if(symbol=='.') {
     if(isdigit(symbol=getc(target))) {
+      numtype = FLTP;
       while(isdigit(symbol=getc(target)));
     }
   }
+  
+  /*
+   * IMPLEMENTAR PARTE EXPONENCIAL
+   * 
+   * [E [('+'|'-')] digit {digit}
+  */
+  
+  ungetc(symbol,target);
+  return 0;
+}
+
+int isCOLONEQ(FILE* target)
+{
+  int symbol = getc(target);
+  
+  if(symbol == ':')
+  {
+    if(symbol=getc(target)=='=')
+      return COLONEQ;
+  }
+  
   ungetc(symbol,target);
   return 0;
 }
@@ -64,5 +107,7 @@ int gettoken(FILE* target)
   if(token = skipspaces(target)) return token;
   if(token = isIDENTIFIER(target)) return token;
   if(token = isDECIMAL(target)) return token;
+  if(token = isTEXT(target)) return token;
+  if(token = isCOLONEQ(target)) return token;
   return getc(target);
 }
