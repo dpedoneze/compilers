@@ -3,8 +3,9 @@
 #include <ctype.h>
 #include <lexer.h>
 #include <tokens.h>
+#include <keywords.h>
 
-int isIDENTIFIER(FILE *target)
+int isID(FILE *target)
 {
   char lexeme[1024];
   int letter = getc(target);
@@ -62,7 +63,7 @@ int gettoken(FILE* target)
 {
   int token;
   if(token = skipspaces(target)) return token;
-  if(token = isIDENTIFIER(target)) return token;
+  if(token = isID(target)) return token;
   if(token = isDECIMAL(target)) return token;
   return getc(target);
 }

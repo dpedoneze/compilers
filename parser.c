@@ -205,29 +205,167 @@ void sbpspecs(void)
 
  /* 
  * blockstmt -> BEGIN stmtlist END
- * 
- * stmtlist -> stmt { ';' stmt }
- * 
- * stmt -> blockstmt | ifstmt | whilestmt | repstmt | idstmt
- * 
- * ifstmt -> IF expr THEN stmt [ ELSE stmt ]
- * 
- * expr -> simpexpr [ relop simpexpr ]
- * 
- * relop = '>'['='] | '<'[ ['='|'>'] ] | '='
- * 
- * simpexpr -> negate term { addop term }
- * 
- * negate -> [ '-' | NOT ]
- * 
- * addop -> '+' | '-' | OR
- * 
- * term -> fact { mulop fact }
+ */
+ 
+void blockstmt(void)
+{
+  match(BEGIN);
+  stmtlist();
+  match(END);
+}
+ 
+ /* stmtlist -> stmt { ';' stmt }
+ */
+void stmtlist()
+{
+  stmt();
+  while(lookahead == ";"){
+    match(";");
+    stmt();
+  }
+}
+ 
+ /* stmt -> blockstmt | ifstmt | whilestmt | repstmt | idstmt
+ */ 
+void stmt()
+{
+  switch(lookahead){
+    case BEGIN:
+      blockstmt();
+      break;
+    case IF:
+      ifstmt();
+      break;
+    case WHILE:
+      whilestmt();
+      break;
+    case REPEAT:
+      repstmt();
+      break;
+    case ID:
+      idstmt();
+  }
+}
+ 
+ /* ifstmt -> IF expr THEN stmt [ ELSE stmt ]
+ */ 
+void ifstmt(void)
+{
+  match(IF);
+  expr();
+  match(THEN);
+  stmt();
+  if(lookahead == ELSE){
+    match(ELSE);
+    stmt();
+  }  
+}
+ 
+ /* expr -> simpexpr [ relop simpexpr ]
+ */ 
+void expr(void)
+{
+  simpexpr();
+  if(isrelop){
+    simpexpr();
+  }
+}
+
+ /* relop = '>'['='] | '<'[ ['='|'>'] ] | '='
+ */ 
+int isrelop(void)
+{
+  switch(lookahead){
+    case '>':
+      match(">");
+      if(lookahead == "="){
+	match("=");
+      }
+      break;
+    case '<':
+      match("<");
+      if(lookahead == "=" || lookahead == ">"){
+	match(lookahead);
+      }
+      break;
+    case '=':
+      match("=");
+    default:
+      return 0;
+  }
+  return 1;
+}
+
+ /* simpexpr -> negate term { addop term }
+ */ 
+void simpexpr(void)
+{
+  negate();
+  term();
+  while(isaddop){
+    term();
+  } 
+}
+
+ /* negate -> [ '-' | NOT ]
+ */ 
+void negate(void)
+{
+  switch(lookahead){
+    case '-':
+    case NOT:
+      match(lookahead);
+  }
+}
+
+ /* addop -> '+' | '-' | OR
+ */
+void isaddop(void)
+{
+  switch(lookahead){
+    case '+':
+    case '-':
+    case OR:
+      match(lookahead);
+      return 0;
+  }
+  return 1;
+}
+
+ /* term -> fact { mulop fact }
  * 
  * mulop -> '*' | '/' | DIV | MOD | AND
- * 
- * fact -> constant | idvalue | '(' expr ')'
- * 
+ */ 
+void ismulop(void)
+{
+  switch(lookahead){
+    case '*':
+    case '/':
+    case DIV:
+    case MOD:
+    case AND:
+      match(lookahead);
+      return 0;
+  }
+  return 1;
+}
+ /* fact -> constant | idvalue | '(' expr ')'
+ */
+void fact(void){
+  switch(lookahead){
+    case ID:
+      idvalue();
+      break;
+    case "(":
+      match("(");
+      expr();
+      match(")");
+      break;
+    default:
+      constant();
+  }
+}
+ 
  /* constant -> num | string | TRUE | FALSE | NIL | char*/
  void constant(void)
  {
