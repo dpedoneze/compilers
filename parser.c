@@ -4,6 +4,8 @@
 #include <string.h>
 #include <tokens.h>
 #include <keywords.h>
+#include <stdlib.h>
+#include <lexer.h>
 
 /* MyPas:: My very simplified Pascal */
 /* LL(1)-Grammar:
@@ -60,7 +62,7 @@
  * 
  * idstmt -> assgmnt | procedcall
  * 
- * assgmnt -> variable ":=" expr
+ * assgmnt -> variable ':=' expr
  * 
  * variable -> ID { '[' exprlist ']' }
  * 
@@ -142,11 +144,11 @@ void formparm(void)
     match(VAR);
   }
   match(ID);
-  while(lookahead == ","){
-    match(",");
+  while(lookahead == ','){
+    match(',');
     match(ID);
   }
-  match(":");
+  match(':');
   typespec();
 }
 
@@ -154,8 +156,8 @@ void formparm(void)
 void parmlist(void)
 {
   formparm();
-  while(lookahead == ","){
-    match(",");
+  while(lookahead == ','){
+    match(',');
     formparm();
   }
 }
@@ -167,24 +169,27 @@ void sbpspecs(void)
 {
   int isfunction = (lookahead == FUNCTION); 
   switch(lookahead){
-    case: FUNCTION:case PROCEDURE:
+    case FUNCTION: case PROCEDURE:
       match(lookahead);
       match(ID);
-      if(lookahead == "("){
-	match("(");
-	parmlist();
-	match(")");
+        if(lookahead == '(')
+        {
+	         match('(');
+  	       parmlist();
+	         match(')');
+        }
+        if(isfunction)
+        {
+	       match(':');
+	       if(!isbuiltin())
+         {
+	         match(0);	  
+	       }
       }
-      if(isfunction){
-	match(":");
-	if(!isbuiltin()){
-	  match(0);	  
-	}
-      }
-      match(";");
+      match(';');
       declarations();
       blockstmt();
-      match(";");
+      match(';');
   }
 }
 
@@ -204,8 +209,8 @@ void blockstmt(void)
 void stmtlist()
 {
   stmt();
-  while(lookahead == ";"){
-    match(";");
+  while(lookahead == ';'){
+    match(';');
     stmt();
   }
 }
@@ -262,19 +267,19 @@ int isrelop(void)
 {
   switch(lookahead){
     case '>':
-      match(">");
-      if(lookahead == "="){
-	match("=");
+      match('>');
+      if(lookahead == '='){
+	match('=');
       }
       break;
     case '<':
-      match("<");
-      if(lookahead == "=" || lookahead == ">"){
+      match('<');
+      if(lookahead == '=' || lookahead == '>'){
 	match(lookahead);
       }
       break;
     case '=':
-      match("=");
+      match('=');
     default:
       return 0;
   }
@@ -305,7 +310,7 @@ void negate(void)
 
  /* addop -> '+' | '-' | OR
  */
-void isaddop(void)
+int isaddop(void)
 {
   switch(lookahead){
     case '+':
@@ -329,7 +334,7 @@ void term(void)
  
 /* mulop -> '*' | '/' | DIV | MOD | AND
  */ 
-void ismulop(void)
+int ismulop(void)
 {
   switch(lookahead){
     case '*':
@@ -349,10 +354,10 @@ void fact(void){
     case ID:
       idvalue();
       break;
-    case "(":
-      match("(");
+    case '(':
+      match('(');
       expr();
-      match(")");
+      match(')');
       break;
     default:
       constant();
@@ -444,4 +449,24 @@ void exprlist(void)
   while(lookahead==','){
     match(',');expr();
   }
+}
+
+/** lexer-to-parser interface **/
+int lookahead;
+
+void match(int expected_token)
+{
+  if(lookahead == expected_token) {
+    lookahead = gettoken(target);
+  } else {
+    fprintf(stderr,"token mismatch ... expected %s but got %s ... exiting.\n",getkeyword(expected_token),lexeme);
+    exit(ILEGALTOKEN);
+  }
+}
+
+void start()
+{
+  lookahead = gettoken(target);
+  
+  mypas();
 }

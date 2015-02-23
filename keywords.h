@@ -30,3 +30,7 @@ enum {
   FALSE,
   END
 };
+
+
+int iskeyword(const char *identifier);
+const char * getkeyword(int id);

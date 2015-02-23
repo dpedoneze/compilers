@@ -5,9 +5,10 @@
 #include <tokens.h>
 #include <keywords.h>
 
+char lexeme[BUFFER_SIZE];
+
 int isID(FILE *target)
 {
-  char lexeme[1024];
   int letter = getc(target);
   int i = 0;
   if(isalpha(lexeme[i]=letter)){
@@ -81,7 +82,6 @@ int isNUMBER(FILE* target)
   */
 int isSCIENTIFIC(FILE * target)
 {
-  char lexeme[BUFFER_SIZE];
   int i = 0;
   
   if(toupper(lexeme[i] = getc(target)) == 'E')

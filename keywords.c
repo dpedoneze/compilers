@@ -43,9 +43,14 @@ int iskeyword(char const *identifier)
   return 0;
 }
 
-
-
-
-
-
-
+const char * getkeyword(int id)
+{
+  int token;
+  for(token=BEGIN;token<END;token++){
+    if (token == id)
+    {
+      return keyword[token - BEGIN];
+    }
+  }
+  return "";
+}

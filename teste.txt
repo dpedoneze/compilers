@@ -1,0 +1,9 @@
+program teste;
+
+var x ? int;
+
+begin
+
+x=10;
+
+end.
