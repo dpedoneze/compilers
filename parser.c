@@ -471,7 +471,7 @@ void match(int expected_token)
   if(lookahead == expected_token) {
     lookahead = gettoken(target);
   } else {
-    fprintf(stderr,"token mismatch ... expected %d but got %d ... exiting.\n",expected_token/*getkeyword(expected_token)*/,lookahead /*lexeme*/);
+    fprintf(stderr,"token mismatch ... expected %i \"%s\" but got \"%s\" ... exiting.\n",expected_token, getkeyword(expected_token), lexeme);
     exit(ILEGALTOKEN);
   }
 }

@@ -1,7 +1,28 @@
 program teste;
 
-var xis:integer;
+var xis, counter: integer;
+var ypslon: real;
 
 begin
-	xis := 10;
+	xis := 1090;
+	xis := xis + 10;
+
+	if (xis = 100) then
+	begin
+		xis := xis * ypslon;
+	end
+	else
+	begin
+		xis := xis + xis;
+	end;
+
+   while counter < 10 do 
+   begin
+     counter := counter + 1;
+   end;
+
+  repeat
+    ypslon := ypslon + xis + counter;
+  until ypslon = 5000;
+
 end.

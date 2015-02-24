@@ -65,7 +65,7 @@ int iskeyword(char const *identifier)
 const char * getkeyword(int id)
 {
   int token;
-  for(token=BEGIN;token<END;token++){
+  for(token=BEGIN;token<=END;token++){
     if (token == id)
     {
       return keyword[token - BEGIN];
