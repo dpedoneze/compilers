@@ -1,6 +1,7 @@
 /**@<parser.c>::**/
 //indent -nuts -ts2 -orig *.[ch]
 #include <parser.h>
+#include <pseudocode.h>
 #include <string.h>
 #include <tokens.h>
 #include <keywords.h>
@@ -319,6 +320,7 @@ int isaddop(void)
     case '+':
     case '-':
     case OR:
+      do_operation(lookahead);
       match(lookahead);
       return 1;
   }
@@ -345,6 +347,7 @@ int ismulop(void)
     case DIV:
     case MOD:
     case AND:
+      do_operation(lookahead);
       match(lookahead);
       return 1;
   }

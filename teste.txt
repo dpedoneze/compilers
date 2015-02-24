@@ -5,7 +5,7 @@ var ypslon: real;
 
 begin
 	xis := 1090;
-	xis := xis + 10;
+	xis := xis - 10;
 
 	if (xis = 100) then
 	begin
@@ -22,7 +22,7 @@ begin
    end;
 
   repeat
-    ypslon := ypslon + xis + counter;
+    ypslon := ypslon + xis / counter;
   until ypslon = 5000;
 
 end.

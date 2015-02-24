@@ -4,7 +4,9 @@ CFLAGS=-g -I$(INCLUDEDIR)
 objs=		main.o\
 		lexer.o\
 		keywords.o\
-		parser.o
+		parser.o\
+		pseudocode.o\
+		symtab.o
 
 mypas: $(objs)
 	$(CC) -o $@  $^

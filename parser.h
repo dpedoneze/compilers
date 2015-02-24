@@ -39,3 +39,4 @@ extern int lookahead;
 extern gettoken(FILE *);
 extern FILE *target;
 extern char lexeme[];
+
