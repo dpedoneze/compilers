@@ -9,70 +9,70 @@
 
 /* MyPas:: My very simplified Pascal */
 /* LL(1)-Grammar:
- * 
+ *
  * mypas -> programID declarations blockstmt '.'
- * 
+ *
  * programID -> [ PROGRAM ID ';' ]
- * 
+ *
  * declarations -> varspecs sbpspecs
- * 
+ *
  * varspecs -> { VAR ID {',' ID} ':' typespec ';' }
- * 
+ *
  * typespec -> INTEGER | BOOLEAN | REAL | DOUBLE | CHAR | STRING
  *           | ARRAY '[' decimal { ',' decimal } ']' of typespec
- * 
+ *
  * sbpspecs -> FUNCTION ID [ '(' parmlist ')' ] : typespec ';' declarations blockstmt ';'
  *           | PROCEDURE ID [ '(' parmlist ')' ] ';' declarations blockstmt ';'
- * 
+ *
  * parmlist -> formparm { ';' formparm }
- * 
+ *
  * formparm -> [ VAR ] ID {',' ID} ':' typespec
- * 
+ *
  * blockstmt -> BEGIN stmtlist END
- * 
+ *
  * stmtlist -> stmt { ';' stmt }
- * 
+ *
  * stmt -> blockstmt | ifstmt | whilestmt | repstmt | idstmt
- * 
+ *
  * ifstmt -> IF expr THEN stmt [ ELSE stmt ]
- * 
+ *
  * expr -> simpexpr [ relop simpexpr ]
- * 
+ *
  * relop = '>'['='] | '<'[ ['='|'>'] ] | '='
- * 
+ *
  * simpexpr -> negate term { addop term }
- * 
+ *
  * negate -> [ '-' | NOT ]
- * 
+ *
  * addop -> '+' | '-' | OR
- * 
+ *
  * term -> fact { mulop fact }
- * 
+ *
  * mulop -> '*' | '/' | DIV | MOD | AND
- * 
+ *
  * fact -> constant | idstmt | '(' expr ')'
- * 
+ *
  * constant -> number | TEXT | TRUE | FALSE
- * 
+ *
  * number -> UINT | FLTP
- * 
+ *
  * whilestmt -> WHILE expr DO stmt
- * 
+ *
  * repstmt -> REPEAT stmtlist UNTIL expr
- * 
+ *
  * idstmt -> assgmnt | procedcall
- * 
+ *
  * assgmnt -> variable ':=' expr
- * 
+ *
  * variable -> ID { '[' exprlist ']' }
- * 
+ *
  * exprlist -> expr { ',' expr }
- * 
- */ 
+ *
+ */
 
 
 /* mypas -> programID declarations blockstmt '.' */
-void mypas (void) 
+void mypas (void)
 {
   programID();
   declarations();
@@ -108,11 +108,11 @@ void varspecs(void)
 int isbuiltin(void)
 {
     switch(lookahead){
-    case INTEGER: 
-    case BOOLEAN: 
-    case REAL: 
-    case DOUBLE: 
-    case CHAR: 
+    case INTEGER:
+    case BOOLEAN:
+    case REAL:
+    case DOUBLE:
+    case CHAR:
     case STRING:
       match(lookahead);
       return 1;
@@ -126,13 +126,13 @@ typespec_start:
   if(isbuiltin()){
   }else{
     match(ARRAY);match('[');
-    //decimal(); 
+    //decimal();
     match(UINT);
     while(lookahead==',') {
       match(','); match(UINT);
     }
     match(']');
-    match(OF); 
+    match(OF);
     goto typespec_start;
   }
 }
@@ -167,7 +167,7 @@ void parmlist(void)
  */
 void sbpspecs(void)
 {
-  int isfunction = (lookahead == FUNCTION); 
+  int isfunction = (lookahead == FUNCTION);
   switch(lookahead){
     case FUNCTION: case PROCEDURE:
       match(lookahead);
@@ -183,7 +183,7 @@ void sbpspecs(void)
 	       match(':');
 	       if(!isbuiltin())
          {
-	         match(0);	  
+	         match(0);
 	       }
       }
       match(';');
@@ -193,17 +193,17 @@ void sbpspecs(void)
   }
 }
 
- /* 
+ /*
  * blockstmt -> BEGIN stmtlist END
  */
- 
+
 void blockstmt(void)
 {
   match(BEGIN);
   stmtlist();
   match(END);
 }
- 
+
  /* stmtlist -> stmt { ';' stmt }
  */
 void stmtlist()
@@ -214,9 +214,9 @@ void stmtlist()
     stmt();
   }
 }
- 
+
  /* stmt -> blockstmt | ifstmt | whilestmt | repstmt | idstmt
- */ 
+ */
 void stmt()
 {
   switch(lookahead){
@@ -236,9 +236,9 @@ void stmt()
       idstmt();
   }
 }
- 
+
  /* ifstmt -> IF expr THEN stmt [ ELSE stmt ]
- */ 
+ */
 void ifstmt(void)
 {
   match(IF);
@@ -248,38 +248,41 @@ void ifstmt(void)
   if(lookahead == ELSE){
     match(ELSE);
     stmt();
-  }  
+  }
 }
- 
+
  /* expr -> simpexpr [ relop simpexpr ]
- */ 
+ */
 void expr(void)
 {
   simpexpr();
-  if(isrelop){
+  if(isrelop()){
     simpexpr();
   }
 }
 
  /* relop = '>'['='] | '<'[ ['='|'>'] ] | '='
- */ 
+ */
 int isrelop(void)
 {
   switch(lookahead){
     case '>':
       match('>');
-      if(lookahead == '='){
-	match('=');
+      if(lookahead == '=')
+      {
+            match('=');
       }
       break;
     case '<':
       match('<');
-      if(lookahead == '=' || lookahead == '>'){
-	match(lookahead);
+      if(lookahead == '=' || lookahead == '>')
+      {
+        match(lookahead);
       }
       break;
     case '=':
       match('=');
+      break;
     default:
       return 0;
   }
@@ -287,18 +290,18 @@ int isrelop(void)
 }
 
  /* simpexpr -> negate term { addop term }
- */ 
+ */
 void simpexpr(void)
 {
   negate();
   term();
-  while(isaddop){
+  while(isaddop()){
     term();
-  } 
+  }
 }
 
  /* negate -> [ '-' | NOT ]
- */ 
+ */
 void negate(void)
 {
   switch(lookahead){
@@ -317,9 +320,9 @@ int isaddop(void)
     case '-':
     case OR:
       match(lookahead);
-      return 0;
+      return 1;
   }
-  return 1;
+  return 0;
 }
 
  /* term -> fact { mulop fact }
@@ -327,13 +330,13 @@ int isaddop(void)
 void term(void)
 {
   fact();
-  while(ismulop){
+  while(ismulop()){
     fact();
   }
 }
- 
+
 /* mulop -> '*' | '/' | DIV | MOD | AND
- */ 
+ */
 int ismulop(void)
 {
   switch(lookahead){
@@ -343,9 +346,9 @@ int ismulop(void)
     case MOD:
     case AND:
       match(lookahead);
-      return 0;
+      return 1;
   }
-  return 1;
+  return 0;
 }
  /* fact -> constant | idvalue | '(' expr ')'
  */
@@ -363,7 +366,7 @@ void fact(void){
       constant();
   }
 }
- 
+
  /* constant -> number | TEXT | TRUE | FALSE*/
  void constant(void)
  {
@@ -378,7 +381,7 @@ void fact(void){
        number();
    }
  }
- 
+
  /* number -> (UINT|FLTP) */
  void number(void)
  {
@@ -391,40 +394,44 @@ void fact(void){
        match(FLTP);
    }
  }
- 
- /*digit -> ['0'-'9']*/ 
+
+ /*digit -> ['0'-'9']*/
  void digit(void)
  {
    if(lookahead>='0' && lookahead<='9')
      match(lookahead);
  }
- 
+
  /* whilestmt -> WHILE expr DO stmt */
  void whilestmt(void)
  {
    match(WHILE); expr(); match(DO); stmt();
  }
- 
+
  /* repstmt -> REPEAT stmtlist UNTIL expr */
  void repstmt(void)
  {
    match(REPEAT); stmtlist(); match(UNTIL); expr();
  }
- 
+
  /* idstmt -> assgmnt | procedcall */
 void idstmt(void)
 {
   int isarray = 0;
   match(ID);
   isarray = (lookahead == '[');
+
   while(lookahead=='['){
     match('['); exprlist(); match(']');
   }
-  if(lookahead==COLONEQ){
+
+  if(lookahead == COLONEQ){
     match(COLONEQ); expr();
-  } else if (isarray == 0 && lookahead == '('){
+  }
+  else if (isarray == 0 && lookahead == '('){
     match('('); exprlist(); match(')');
-  } else if (isarray) {
+  }
+  else if (isarray) {
     match(COLONEQ);
   }
 }
@@ -433,12 +440,17 @@ void idvalue(void)
   int isarray = 0;
   match(ID);
   isarray = (lookahead == '[');
-  while(lookahead=='['){
+  while(lookahead=='[')
+  {
     match('['); exprlist(); match(']');
   }
-  if(lookahead==COLONEQ){
+
+  if(lookahead==COLONEQ)
+  {
     match(COLONEQ); expr();
-  } else if (isarray == 0 && lookahead == '('){
+  }
+  else if (isarray == 0 && lookahead == '(')
+  {
     match('('); exprlist(); match(')');
   }
 }
@@ -446,7 +458,7 @@ void idvalue(void)
 void exprlist(void)
 {
   expr();
-  while(lookahead==','){
+  while(lookahead == ','){
     match(',');expr();
   }
 }
@@ -459,7 +471,7 @@ void match(int expected_token)
   if(lookahead == expected_token) {
     lookahead = gettoken(target);
   } else {
-    fprintf(stderr,"token mismatch ... expected %s but got %s ... exiting.\n",getkeyword(expected_token),lexeme);
+    fprintf(stderr,"token mismatch ... expected %d but got %d ... exiting.\n",expected_token/*getkeyword(expected_token)*/,lookahead /*lexeme*/);
     exit(ILEGALTOKEN);
   }
 }
@@ -467,6 +479,6 @@ void match(int expected_token)
 void start()
 {
   lookahead = gettoken(target);
-  
+
   mypas();
 }

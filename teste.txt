@@ -1,9 +1,7 @@
 program teste;
 
-var x ? int;
+var xis:integer;
 
 begin
-
-x=10;
-
+	xis := 10;
 end.
