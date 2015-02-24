@@ -1,5 +1,8 @@
 /**@<tokens.h>::**/
 
+#define MAXIDLEN        128
+#define MAXTBENTRIES	0x10000
+
 enum {
   ILEGALTOKEN = -1024,
   OPENERR,
