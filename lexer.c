@@ -9,84 +9,105 @@ char lexeme[BUFFER_SIZE];
 
 int isID(FILE *target)
 {
-  int letter = getc(target);
   int i = 0;
-  if(isalpha(lexeme[i]=letter)){
-    int symbol;
+  
+  if(isalpha(lexeme[i] = getc(target)))
+  {
     i++;
-    while(isalnum(lexeme[i] = symbol = getc(target))) i++;
+    while(isalnum(lexeme[i] = getc(target))) i++;
+
+    ungetc(lexeme[i],target);
     lexeme[i] = 0;
-    ungetc(symbol,target);
-    if((i = iskeyword(lexeme)))return i;
+    
+    if((i = iskeyword(lexeme))) return i;
+    
     return ID;
   }
-  ungetc(letter,target);
+
+  ungetc(lexeme[i],target);
   return 0;
 }
 
 int isTEXT(FILE* target)
 {
-  int symbol = getc(target);
+  int i = 0;
+  lexeme[i] = getc(target);
 
-  if(symbol=='\'')
+  if(lexeme[i] == '\'')
   {
-    int backslash=0;
-    while((symbol=getc(target)) != '\'' || backslash)
+    int backslash = 0;
+    i++;
+
+    while((lexeme[i] = getc(target)) != '\'' || backslash)
     {
-      if(symbol == EOF) return EOF;
-      backslash = (!backslash && symbol == '\\');
+      if(lexeme[i] == EOF) return EOF;
+      backslash = (!backslash && lexeme[i] == '\\');
+      i++;
     }
 
     return TEXT;
   }
 
-  ungetc(symbol,target);
+  ungetc(lexeme[0],target);
   return 0;
 }
 
+/* regex: ['1'-'9']['0'-'9']* | '0' */
 int isNUMBER(FILE* target)
 {
-  /* regex: ['1'-'9']['0'-'9']* | '0' */
-  int symbol = getc(target);
+  int i = 0;
+  lexeme[i] = getc(target);
   int numtype = UINT;
-  if(isdigit(symbol)) {
-    if(symbol=='0') {
-          if(symbol=='.') {
-	    numtype = FLTP;
-            while(isdigit(symbol=getc(target)));
-            ungetc(symbol,target);
-          }
-          return numtype;
-    }
-    while(isdigit(symbol)) symbol=getc(target);
-    if(symbol=='.')
+
+  if(isdigit(lexeme[i])) 
+  {
+    if(lexeme[i] == '0') 
     {
-      numtype = FLTP;
-      while(isdigit(symbol=getc(target)));
-    }
-    ungetc(symbol,target);
-    return numtype;
-  }
-  else if(symbol == '.') {
-    if(isdigit(symbol=getc(target))) {
-      numtype = FLTP;
-      while(isdigit(symbol=getc(target)));
-      ungetc(symbol,target);
+      if(lexeme[i] == '.') 
+      {
+        i++;
+        numtype = FLTP;
+        while(isdigit(lexeme[i] = getc(target)));
+        ungetc(lexeme[i],target);
+      }
+
       return numtype;
     }
-    ungetc(symbol,target);
-    symbol = '.';
+
+    i++;
+    while(isdigit(lexeme[i] = getc(target))) i++;
+    
+    if(lexeme[i] == '.')
+    {
+      numtype = FLTP;
+      i++;
+      while(isdigit(lexeme[i] = getc(target))) i++;
+    }
+    
+    ungetc(lexeme[i],target);
+    return numtype;
+  }
+  else if(lexeme[i] == '.') 
+  {
+    i++;
+    if(isdigit(lexeme[i] = getc(target))) 
+    {
+      numtype = FLTP;
+      i++;
+      while(isdigit(lexeme[i] = getc(target))) i++;
+
+      ungetc(lexeme[i],target);
+      return numtype;
+    }
+
+    ungetc(lexeme[i],target);
   }
 
-  ungetc(symbol,target);
+  ungetc(lexeme[0],target);
   return 0;
 }
 
-  /*
-   * IMPLEMENTAR PARTE EXPONENCIAL
-   *
-   * [E [('+'|'-')] digit {digit}
-  */
+/* [E [('+'|'-')] digit {digit} */
 int isSCIENTIFIC(FILE * target)
 {
   int i = 0;
@@ -123,18 +144,15 @@ int isSCIENTIFIC(FILE * target)
 
 int isCOLONEQ(FILE* target)
 {
-  int symbol = getc(target);
-
-  if(symbol == ':')
+  if((lexeme[0] = getc(target)) == ':')
   {
-    if((symbol = getc(target)) == '=')
+    if((lexeme[1] = getc(target)) == '=')
       return COLONEQ;
 
-    ungetc(symbol,target);
-    symbol = ':';
+    ungetc(lexeme[1],target);
   }
 
-  ungetc(symbol,target);
+  ungetc(lexeme[0],target);
   return 0;
 }
 
