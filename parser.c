@@ -1,7 +1,5 @@
 /**@<parser.c>::**/
-//indent -nuts -ts2 -orig *.[ch]
 #include <parser.h>
-#include <pseudocode.h>
 #include <string.h>
 #include <tokens.h>
 #include <keywords.h>
@@ -20,7 +18,6 @@
  * varspecs -> { VAR ID {',' ID} ':' typespec ';' }
  *
  * typespec -> INTEGER | BOOLEAN | REAL | DOUBLE | CHAR | STRING
- *           | ARRAY '[' decimal { ',' decimal } ']' of typespec
  *
  * sbpspecs -> FUNCTION ID [ '(' parmlist ')' ] : typespec ';' declarations blockstmt ';'
  *           | PROCEDURE ID [ '(' parmlist ')' ] ';' declarations blockstmt ';'
@@ -80,6 +77,7 @@ void mypas (void)
   blockstmt();
   match('.');
 }
+
 /* programID -> [ PROGRAM ID ';' ] */
 void programID (void)
 {
@@ -87,11 +85,13 @@ void programID (void)
     match (PROGRAM); match (ID); match (';');
   }
 }
+
 /* declarations -> varspecs sbpspecs */
 void declarations (void)
 {
   varspecs(); sbpspecs();
 }
+
 /* varspecs -> { VAR ID {',' ID} ':' typespec ';' } */
 void varspecs(void)
 {
@@ -103,10 +103,10 @@ void varspecs(void)
     match(':');typespec();match(';');
   }
 }
-/* typespec -> INTEGER | BOOLEAN | REAL | DOUBLE | CHAR | STRING
- *           | ARRAY '[' decimal { ',' decimal } ']' OF typespec */
 
-int isbuiltin(void)
+/* typespec -> INTEGER | BOOLEAN | REAL | DOUBLE | CHAR | STRING */
+
+int typespec(void)
 {
     switch(lookahead){
     case INTEGER:
@@ -119,23 +119,6 @@ int isbuiltin(void)
       return 1;
     }
     return 0;
-}
-
-void typespec(void)
-{
-typespec_start:
-  if(isbuiltin()){
-  }else{
-    match(ARRAY);match('[');
-    //decimal();
-    match(UINT);
-    while(lookahead==',') {
-      match(','); match(UINT);
-    }
-    match(']');
-    match(OF);
-    goto typespec_start;
-  }
 }
 
 /* formparm -> [ VAR ] ID {',' ID} ':' typespec */
@@ -420,43 +403,32 @@ void fact(void){
  /* idstmt -> assgmnt | procedcall */
 void idstmt(void)
 {
-  int isarray = 0;
   match(ID);
-  isarray = (lookahead == '[');
 
-  while(lookahead=='['){
-    match('['); exprlist(); match(']');
-  }
-
-  if(lookahead == COLONEQ){
+  if (lookahead == COLONEQ)
+  {
     match(COLONEQ); expr();
   }
-  else if (isarray == 0 && lookahead == '('){
+  else if (lookahead == '(')
+  {
     match('('); exprlist(); match(')');
   }
-  else if (isarray) {
-    match(COLONEQ);
-  }
 }
+
 void idvalue(void)
 {
-  int isarray = 0;
   match(ID);
-  isarray = (lookahead == '[');
-  while(lookahead=='[')
-  {
-    match('['); exprlist(); match(']');
-  }
 
   if(lookahead==COLONEQ)
   {
     match(COLONEQ); expr();
   }
-  else if (isarray == 0 && lookahead == '(')
+  else if (lookahead == '(')
   {
     match('('); exprlist(); match(')');
   }
 }
+
 /* exprlist -> expr { ',' expr } */
 void exprlist(void)
 {
