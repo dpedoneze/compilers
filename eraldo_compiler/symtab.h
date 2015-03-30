@@ -1,5 +1,4 @@
-#define                 MAXARGNUM       32
-
+#define MAXARGNUM 32
 #define OBJSVAR 0
 #define OBJSPAR 1
 #define OBJRPAR 2
@@ -34,5 +33,5 @@ extern int      argc,
                 argt[MAXARGNUM];
 
 
-int             symtab_add(char const *newsymbol);
-int             symtab_lookup(char const *query);
+int symtab_add(char const *newsymbol);
+int symtab_lookup(char const *query);

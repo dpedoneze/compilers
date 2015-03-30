@@ -4,8 +4,7 @@
 #include <typecheck.h>
 #include <keywords.h>
 
-int             loopcount = 1,
-    constcount = 1;
+int loopcount = 1,constcount = 1;
 
 FILE           *object;
 
@@ -62,9 +61,12 @@ assemblyrelop(int condition)
 void
 do_operation(int op, int oprndtype)
 {
-  switch(oprndtype){
+  switch(oprndtype)
+  {
     case TYPEINT:
-      switch (op) {
+    case TYPEFLT:
+      switch (op) 
+      {
         case '+':
           fprintf(object, "\taddl %%eax,(%%esp)\n");
           break;
@@ -82,22 +84,36 @@ do_operation(int op, int oprndtype)
           fprintf(object, "\tmovl %%edx,%%eax\n");
           break;
         case '/':
+          fprintf(object, "\tcltd\n\tidivl (%%esp)\n");
           break;
       }
       break;
-    case TYPEFLT:
-      break;
     case TYPEDBL:
-      break;
-    case TYPEASC:
-      break;
-    case TYPESTR:
+      switch (op) 
+      {
+        case '+':
+        case '-':
+          break;
+        case '*':
+          fprintf(object, "\timull (%%esp)\n");
+          break;
+        case DIV:
+          fprintf(object, "\tcltd\n\tidivl (%%esp)\n");
+          break;
+        case MOD:
+          break;
+        case '/':
+          fprintf(object, "\tcltd\n\tidivl (%%esp)\n");
+          break;
+      }
       break;
     case TYPELOG:
-      /*
-       * case OR: case AND: ; 
-       */
-      ;
+       case OR: 
+          fprintf(object, "\torl %%eax,(%%esp)\n");
+          break;
+       case AND: 
+          fprintf(object, "\tandl %%eax,(%%esp)\n");
+          break;
   }
 }
 

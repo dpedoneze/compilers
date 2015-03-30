@@ -11,52 +11,61 @@
 #include <typecheck.h>
 #include <pseudocode.h>
 
-#define         SYNTAXERR       -1
+#define    SYNTAXERR   -1
+#define    LOCAL 1
 
-int             fatalerror = 0;
-int             lookahead;
+int fatalerror = 0;
+int lookahead;
+char str[2];
 
-/** Section I - CONTROL OPERATIONS **/
-
-char            str[2];
-
-char           *
-showtoken(int token)
+char * showtoken(int token)
 {
-    if (token >= BEGIN && token <= END) {
+    if (token >= BEGIN && token <= END) 
+    {
         return keyword[token - BEGIN];
     }
-    switch (token) {
-    case ID:
-        return "identifier";
-    case UINT:
-        return "integer constant";
-    case UFLT:
-        return "real constant";
-    case UDBL:
-        return "double real constant";
-    case COLONEQ:
-        return ":=";
-    case STRING:
-        return "string constant";
-    case ASCII:
-        return "single character constant";
+
+    switch (token) 
+    {
+        case ID:
+            return "identifier";
+        case UINT:
+            return "integer constant";
+        case UFLT:
+            return "real constant";
+        case UDBL:
+            return "double real constant";
+        case COLONEQ:
+            return ":=";
+        case STRING:
+            return "string constant";
+        case ASCII:
+            return "single character constant";
+        case EOF :
+            return "end of file";
     }
+
     str[1] = 0;
     str[0] = token;
+    
     return str;
 }
-void
-match(int expected)
+
+void match(int expected)
 {
-    if (expected == lookahead) {
-        lookahead = gettoken(target);
-    } else {
+    if (expected != lookahead) 
+    {
         fprintf(stderr,
-                "token mismatch. expected %s but found %s... exiting\n",
-                showtoken(expected), lexeme);
+                "%s:%d: token mismatch, expected %s but found %s.\n",
+                filename,
+                lineno,
+                showtoken(expected), 
+                lookahead == -1 ? " end of file " : lexeme);
+
         exit(SYNTAXERR);
-    }
+    } 
+
+    lookahead = gettoken(target);
 }
 
 void
@@ -96,19 +105,17 @@ programID(void)
     }
 }
 
-                                                                                           /** Section III - DECLARATIONS DEFINITION **/
+/** Section III - DECLARATIONS DEFINITION **/
 /*
  * declarations -> varspecs sbpspecs 
  */
-void
-declarations(void)
+void declarations(void)
 {
     varspecs();
     sbpspecs();
 }
 
-void
-varspecs(void)
+void varspecs(void)
 {
     int             initial,
                     final;
@@ -218,7 +225,7 @@ parmpecs(void)
     return final - initial;
 }
 
-#define LOCAL 1
+
 void
 typespec(int objtype, int initial, int final)
 {
@@ -403,51 +410,78 @@ repstmt(void)
     expression(TYPELOG);
 }
 
-int
-idstmt(int context)
+int idstmt(int context)
 {
-    char            objname[MAXIDLEN + 1];
-    int             objentry = symtab_lookup(strcpy(objname, lexeme)),
-        objtype,
-        dtatype;
-    if (objentry < 0) {
-        fprintf(stderr, "%s not found... exiting\n", objname);
+    char objname[MAXIDLEN + 1];
+    int objentry = symtab_lookup(strcpy(objname, lexeme)), objtype, dtatype;
+    
+    if (objentry < 0) 
+    {
+        fprintf(stderr,
+                "%s:%d: %s not found.\n",
+                filename,
+                lineno,
+                objname);
         fatalerror++;
-        //exit(-9);
     }
-    if (context == STATEMENT
-        && (objtype = symtab[objentry].objtype) == OBJFUNC) {
-        fprintf(stderr, "%s cannot exist in this context\n", objname);
+    
+    if (context == STATEMENT && (objtype = symtab[objentry].objtype) == OBJFUNC) {
+        fprintf(stderr,
+                "%s:%d: %s cannot exist in this context.\n",
+                filename,
+                lineno,
+                objname);
         fatalerror++;
-        //exit(-8);
     }
-    if (context == EXPRESSION
-        && (objtype = symtab[objentry].objtype) == OBJPROC) {
-        fprintf(stderr, "%s cannot exist in this context\n", objname);
-        //exit(ILEGCALL);
+
+    if (context == EXPRESSION && (objtype = symtab[objentry].objtype) == OBJPROC) 
+    {
+        fprintf(stderr,
+                "%s:%d: %s cannot exist in this context.\n", 
+                filename,
+                lineno,
+                objname);
+        fatalerror++;
     }
+
     dtatype = symtab[objentry].dtatype;
+    
     match(ID);
-    if (objtype == OBJPROC || objtype == OBJFUNC) {
-        if (lookahead == '(') {
+    
+    if (objtype == OBJPROC || objtype == OBJFUNC) 
+    {
+        if (lookahead == '(') 
+        {
             match('(');
             exprlist(symtab[objentry].argc, symtab[objentry].argt);
             match(')');
         }
-    } else {
-        if (lookahead == COLONEQ) {
-            int             synth_type;
+    } 
+    else 
+    {
+        if (lookahead == COLONEQ) 
+        {
+            int synth_type;
+            
             match(COLONEQ);
-            if (dtatype < (synth_type = expression(dtatype))) {
-                fprintf(stderr, "L-type and R-type are not compatible\n");
+            
+            if (dtatype < (synth_type = expression(dtatype))) 
+            {
+                fprintf(stderr, 
+                        "%s:%d: L-type and R-type are not compatible\n",
+                        filename,
+                        lineno);
                 fatalerror++;
-                //return -11;
             }
+            
             lvalue(symtab[objentry].offset);
+            
             return typematch(dtatype, synth_type);
         }
+
         rvalue(symtab[objentry].offset);
     }
+    
     return dtatype;
 }
 
@@ -456,52 +490,74 @@ idstmt(int context)
 /*
  * exprlist -> expr { ',' expr } 
  */
-void
-exprlist(int argc, int argt[])
+void exprlist(int argc, int argt[])
 {
-    int             i = 0, exprtype;
-    if (argc == 0) {
-        fprintf(stderr, "no argument allowed\n");
+    int i = 0, exprtype;
+
+    if (argc == 0) 
+    {
+        fprintf(stderr, 
+                "%s:%d: no argument allowed.\n",
+                filename,
+                lineno);
         fatalerror++;
-        //exit(-12);
     }
+
     exprtype = expression(argt[i]);
     push(size_of_type(exprtype));
     i++;
-    while (lookahead == ',') {
+    
+    while (lookahead == ',') 
+    {
         match(',');
-        if (i == argc) {
-            fprintf(stderr, "maximum number of arguments exceeded\n");
+        
+        if (i == argc) 
+        {
+            fprintf(stderr, 
+                    "%s:%d: maximum number of arguments exceeded.\n",
+                    filename,
+                    lineno);
             fatalerror++;
-            //exit(-13);
         }
+
         expression(argt[i]);
         i++;
     }
-    if (i < argc) {
-        fprintf(stderr, "missing arguments\n");
+    
+    if (i < argc) 
+    {
+        fprintf(stderr, 
+                "%s:%d: missing arguments.\n",
+                filename,
+                lineno);
         fatalerror++;
-        //exit(-14);
     }
 }
 
-int
-isrelop(void)
+int isrelop(void)
 {
-    int             great,
-                    less,
-                    equal;
-    if ((great = lookahead == '>') || (less = lookahead == '<')) {
+    int great, less, equal;
+
+    if ((great = lookahead == '>') || (less = lookahead == '<')) 
+    {
         match(lookahead);
-        if (equal = lookahead == '=') {
+    
+        if (equal = lookahead == '=') 
+        {
             match('=');
-        } else if (less && (great = lookahead == '>')) {
+        } 
+        else if (less && (great = lookahead == '>')) 
+        {
             match('>');
         }
-    } else if (lookahead == '=') {
+    } 
+    else if (lookahead == '=') 
+    {
         match('=');
         equal = 1;
-    } else {
+    } 
+    else 
+    {
       return 0;
     }
     /*
@@ -515,148 +571,184 @@ isrelop(void)
     return less + 2 * great + 4 * equal;
 }
 
-int
-expression(int inherited_type)
+int expression(int inherited_type)
 {
-    int             synthesized_type = expr(), relop;
-    if (relop = isrelop()) {
+    int synthesized_type = expr(), relop;
+
+    if (relop = isrelop()) 
+    {
         push(size_of_type(synthesized_type));
         synthesized_type = typematch(synthesized_type, expr());
-        if (synthesized_type < 0) {
-            fprintf(stderr, "type mismatch in relational expression\n");
+        
+        if (synthesized_type < 0) 
+        {
+            fprintf(stderr,
+                    "%s:%d: type mismatch in relational expression\n",
+                    filename,
+                    lineno);
             fatalerror++;
-            //exit(-7);
         }
+
         assemblyrelop(relop);
         synthesized_type = TYPELOG /*resulting boolean from comparison */ ;
     }
+
     return typematch(synthesized_type, inherited_type);
 }
 
-int
-expr(void)
+int expr(void)
 {
-    int             synth_type = 0,
-        optype;
-    switch (lookahead) {
-    case '-':
-        synth_type = TYPEINT;
-        match('-');
-        break;
-    case NOT:
-        synth_type = TYPELOG;
-        match(NOT);
+    int synth_type = 0, op, optype;
+
+    switch (lookahead) 
+    {
+        case '-':
+            synth_type = TYPEINT;
+            match('-');
+            break;
+        case NOT:
+            synth_type = TYPELOG;
+            match(NOT);
     }
 
-    if ((synth_type = typematch(synth_type, term())) < 0) {
-        fprintf(stderr, "operand type mismatches unary operator\n");
-        //exit(-5);
+    if ((synth_type = typematch(synth_type, term())) < 0) 
+    {
+        fprintf(stderr,
+                "%s:%d: operand type mismatches unary operator\n",
+                filename,
+                lineno);
+        fatalerror++;
     }
-    while (optype = isaddop()) {
+
+    op = lookahead;
+
+    while (optype = isaddop()) 
+    {
+        push(size_of_type(optype));
         synth_type = typematch(synth_type, optype);
-        if ((synth_type = typematch(synth_type, term())) < 0) {
-            fprintf(stderr, "operand type mismatches additive operator\n");
-            //exit(-5);
+
+        if ((synth_type = typematch(synth_type, term())) < 0) 
+        {
+            fprintf(stderr,
+                    "%s:%d: operand type mismatches additive operator\n",
+                    filename,
+                    lineno);
+            fatalerror++;
         }
+
+        do_operation(op,optype);
+        op = lookahead;
     }
+
     return synth_type;
 }
 
-int
-isnegate(void)
+int isaddop(void)
 {
-    return lookahead == '-' || lookahead == NOT;
-}
-
-int
-isaddop(void)
-{
-    switch (lookahead) {
-    case '+':
-    case '-':
-        match(lookahead);
-        return 1;
-    case OR:
-        match(OR);
-        return 4;
+    switch (lookahead)
+    {
+        case '+':
+        case '-':
+            match(lookahead);
+            return 1;
+        case OR:
+            match(OR);
+            return 6;
     }
+
     return 0;
 }
 
-int
-ismulop(void)
+int ismulop(void)
 {
-    switch (lookahead) {
-    case '*':
-    case '/':
-    case DIV:
-    case MOD:
-        match(lookahead);
-        return 1;
-    case AND:
-        match(AND);
-        return 6;
+    switch (lookahead)
+    {
+        case '*':
+        case '/':
+        case DIV:
+        case MOD:
+            match(lookahead);
+            return 1;
+        case AND:
+            match(AND);
+            return 6;
     }
+
     return 0;
 }
 
-int
-term(void)
+int term(void)
 {
-    int             synth_type = factor(),
-        optype;
-    while (optype = ismulop()) {
+    int synth_type = factor(), op, optype;
+
+    op = lookahead;
+
+    while (optype = ismulop()) 
+    {
+        push(size_of_type(optype));
         synth_type = typematch(synth_type, optype);
-        if ((synth_type = typematch(synth_type, factor())) < 0) {
-            fprintf(stderr, "operand type mismatches product operator\n");
-            //exit(-5);
+        
+        if ((synth_type = typematch(synth_type, factor())) < 0) 
+        {
+            fprintf(stderr,
+                    "%s:%d: operand type mismatches product operator\n",
+                    filename,
+                    lineno);
+            fatalerror++;
         }
+
+        do_operation(op,optype);
+        op = lookahead;
     }
+
     return synth_type;
 }
 
-factor(void)
+int factor(void)
 {
-    int             factor_type;
-    switch (lookahead) {
-    case ID:
-        factor_type = idstmt(EXPRESSION);
-        break;
-    case UINT:
-        factor_type = TYPEINT;
-        assemblyconst(lexeme,TYPEINT);
-        match(lookahead);
-        break;
-    case UFLT:
-        factor_type = TYPEFLT;
-        assemblyconst(lexeme,TYPEFLT);
-        match(lookahead);
-        break;
-    case UDBL:
-        factor_type = TYPEDBL;
-        assemblyconst(lexeme,TYPEDBL);
-        match(lookahead);
-        break;
-    case ASCII:
-        factor_type = TYPEASC;
-        assemblyconst(lexeme,TYPEASC);
-        match(lookahead);
-        break;
-    case STRING:
-        factor_type = TYPESTR;
-        assemblyconst(lexeme,TYPESTR);
-        match(lookahead);
-        break;
-    case TRUE:
-    case FALSE:
-        factor_type = TYPELOG;
-        assemblyconst(lexeme,TYPELOG);
-        match(lookahead);
-        break;
-    default:
-        match('(');
-        factor_type = expression(0);
-        match(')');
+    int factor_type;
+
+    switch (lookahead) 
+    {
+        case ID:
+            factor_type = idstmt(EXPRESSION);
+            break;
+        case UINT:
+            factor_type = TYPEINT;
+            assemblyconst(lexeme,TYPEINT);
+            match(lookahead);
+            break;
+        case UFLT:
+            factor_type = TYPEFLT;
+            assemblyconst(lexeme,TYPEFLT);
+            match(lookahead);
+            break;
+        case UDBL:
+            factor_type = TYPEDBL;
+            assemblyconst(lexeme,TYPEDBL);
+            match(lookahead);
+            break;
+        case ASCII:
+            factor_type = TYPEASC;
+            assemblyconst(lexeme,TYPEASC);
+            match(lookahead);
+            break;
+        case STRING:
+            factor_type = TYPESTR;
+            assemblyconst(lexeme,TYPESTR);
+            match(lookahead);
+            break;
+        case TRUE:
+        case FALSE:
+            factor_type = TYPELOG;
+            assemblyconst(lexeme,TYPELOG);
+            match(lookahead);
+            break;
+        default:
+            match('(');
+            factor_type = expression(0);
+            match(')');
     }
+
     return factor_type;
 }

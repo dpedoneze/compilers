@@ -3,6 +3,7 @@
 #define STATEMENT       0
 #define EXPRESSION      1
 
+extern const char *filename;
 extern char     lexeme[];
 extern int      lookahead;
 extern int      lineno;
