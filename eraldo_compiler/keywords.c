@@ -30,6 +30,9 @@ char           *keyword[] = {
     "of",
     "procedure",
     "function",
+    "write",
+    "writeln",
+    "readln",
     "end"
 };
 

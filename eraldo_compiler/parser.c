@@ -12,7 +12,8 @@
 #include <pseudocode.h>
 
 #define    SYNTAXERR   -1
-#define    LOCAL 1
+#define    LOCAL        1
+#define    not          !
 
 int fatalerror = 0;
 int lookahead;
@@ -338,33 +339,76 @@ stmtlist(void)
     }
 }
 
-#define         not     !
-void
-stmt(void)
+void stmt(void)
 {
-    switch (lookahead) {
-    case IF:
-        ifstmt();
-        break;
-    case WHILE:
-        whilestmt();
-        break;
-    case REPEAT:
-        repstmt();
-        break;
-    case ID:
-        idstmt(not EXPRESSION);
-        break;
-    case BEGIN:
-        blockstmt();
-        break;
-    default:
-        ;
+    switch (lookahead)
+    {
+        case IF:
+            ifstmt();
+            break;
+        case WHILE:
+            whilestmt();
+            break;
+        case REPEAT:
+            repstmt();
+            break;
+        case ID:
+            idstmt(not EXPRESSION);
+            break;
+        case BEGIN:
+            blockstmt();
+            break;
+        case WRITE:
+            writefunc();
+            break;
+        case WRITELN:
+            writelnfunc();
+            break;
+        case READLN:
+            readlnfunc();
+            break;
+        default:
+            ;
     }
 }
 
-void
-blockstmt(void)
+void writefunc(void)
+{
+    match(WRITE);
+    match('(');
+    printf("%s", lexeme);
+    match(STRING);
+    match(')');
+}
+
+void writelnfunc(void)
+{
+    match(WRITELN);
+
+    if (lookahead == '(')
+    {
+        match('(');
+        printf("%s", lexeme);
+        match(STRING);
+        match(')');
+    }
+
+    printf("\n");
+}
+
+void readlnfunc(void)
+{
+    match(READLN);
+
+    if (lookahead == '(')
+    {
+        match('(');
+        match(ID);
+        match(')');
+    }
+}
+
+void blockstmt(void)
 {
     match(BEGIN);
     stmtlist();

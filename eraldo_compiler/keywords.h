@@ -28,9 +28,11 @@ enum {
     OF,
     PROCEDURE,
     FUNCTION,
+    WRITE,
+    WRITELN,
+    READLN,
     END
 };
 
-extern char    *keyword[];
-
-int             iskeyword(char const *identifier);
+extern char *keyword[];
+int iskeyword(char const *identifier);

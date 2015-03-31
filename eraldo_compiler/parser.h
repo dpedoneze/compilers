@@ -31,3 +31,6 @@ void            whilestmt(void);
 void            repstmt(void);
 int             formalparm(void);
 int             parmpecs(void);
+void writefunc(void);
+void writelnfunc(void);
+void readlnfunc(void);

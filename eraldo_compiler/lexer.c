@@ -130,8 +130,7 @@ skipNEUTRALS(FILE * target)
     return 0;
 }
 
-int
-isSTRING(FILE * target)
+int isSTRING(FILE * target)
 {
     if ((lexeme[0] = getc(target)) == '\'') {
         int             i = 1;
@@ -152,10 +151,10 @@ isSTRING(FILE * target)
 }
 
 /** lexer-to-parser interface **/
-int
-gettoken(FILE * target)
+int gettoken(FILE * target)
 {
-    int             token;
+    int token;
+
     if (token = skipNEUTRALS(target))
         return token;
     if (token = isNUM(target))
@@ -166,6 +165,8 @@ gettoken(FILE * target)
         return token;
     if (token = isID(target))
         return token;
+    
     lexeme[1] = 0;
+    
     return lexeme[0] = getc(target);
 }
